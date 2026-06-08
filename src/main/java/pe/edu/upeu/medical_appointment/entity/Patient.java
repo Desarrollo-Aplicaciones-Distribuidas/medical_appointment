@@ -1,4 +1,5 @@
 package pe.edu.upeu.medical_appointment.entity;
+
 import jakarta.persistence.*;
 
 @Entity
@@ -23,6 +24,22 @@ public class Patient {
 
     @Column(length = 16)
     private String phone;
+
+    @Column(nullable = false)
+    private Boolean deleted = Boolean.FALSE;
+
+    public Patient() {
+    }
+
+    public Patient(Long id, String name, String lastName, String dni, String email, String phone, Boolean deleted) {
+        this.id = id;
+        this.name = name;
+        this.lastName = lastName;
+        this.dni = dni;
+        this.email = email;
+        this.phone = phone;
+        this.deleted = deleted;
+    }
 
     public Long getId() {
         return id;
@@ -70,5 +87,13 @@ public class Patient {
 
     public void setPhone(String phone) {
         this.phone = phone;
+    }
+
+    public Boolean getDeleted() {
+        return deleted;
+    }
+
+    public void setDeleted(Boolean deleted) {
+        this.deleted = deleted;
     }
 }

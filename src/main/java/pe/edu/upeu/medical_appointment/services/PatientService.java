@@ -7,9 +7,12 @@ import java.util.List;
 public interface PatientService {
 
     Patient create(Patient patient);
-    Patient readByDni(String dni);
+
+    Patient findByDni(String dni);
+
     Patient update(Patient patient, String dni);
-    void delete(String dni);
+
+    Patient delete(String dni);
 
     List<Patient> getAll();
 }

@@ -3,6 +3,7 @@ package pe.edu.upeu.medical_appointment.services;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 import pe.edu.upeu.medical_appointment.entity.Patient;
+import pe.edu.upeu.medical_appointment.exceptions.ResourceNotFoundException;
 import pe.edu.upeu.medical_appointment.repository.PatientRepository;
 
 import java.util.List;
@@ -20,36 +21,40 @@ public class PatientServiceImpl implements PatientService {
 
     @Override
     public List<Patient> getAll() {
-        return this.patientRepository.findAll();
+        return this.patientRepository.findByDeletedFalse();
     }
 
     @Override
     public Patient create(Patient patient) {
+        patient.setDeleted(Boolean.FALSE);
         return this.patientRepository.save(patient);
     }
 
     @Override
-    public Patient readByDni(String dni) {
-        return this.patientRepository.findByDni(dni)
-                .orElseThrow(() -> new NoSuchElementException("Patient with dni " + dni + " does not exist"));
+    public Patient findByDni(String dni) {
+        return this.patientRepository.findByDniAndDeletedFalse(dni)
+                .orElseThrow(() -> new ResourceNotFoundException("Patient with dni " + dni + " does not exists"));
     }
 
     @Override
     public Patient update(Patient patient, String dni) {
-        var patientToUpdate = this.readByDni(dni);
+
+        var patientToUpdate = this.findByDni(dni);
+
         patientToUpdate.setName(patient.getName());
         patientToUpdate.setLastName(patient.getLastName());
         patientToUpdate.setDni(patient.getDni());
         patientToUpdate.setEmail(patient.getEmail());
         patientToUpdate.setPhone(patient.getPhone());
-        patientRepository.save(patientToUpdate);
-        return null;
+
+        return patientRepository.save(patientToUpdate);
     }
 
     @Override
-    public void delete(String dni) {
-        var patientToDelete = this.readByDni(dni);
-        this.patientRepository.delete(patientToDelete);
+    public Patient delete(String dni) {
+        var patientToDelete = this.findByDni(dni);
+        patientToDelete.setDeleted(true);
+        return this.patientRepository.save(patientToDelete);
     }
 
 

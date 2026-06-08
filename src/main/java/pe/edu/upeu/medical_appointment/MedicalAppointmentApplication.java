@@ -8,8 +8,8 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 @EnableDiscoveryClient
 public class MedicalAppointmentApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(MedicalAppointmentApplication.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(MedicalAppointmentApplication.class, args);
+    }
 
 }

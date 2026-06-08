@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pe.edu.upeu.medical_appointment.entity.Patient;
@@ -31,32 +32,36 @@ public class PatientController {
         return ResponseEntity.ok(this.patientService.getAll());
     }
 
-    @Operation( summary = "Get Patient by DNI")
+    @Operation(summary = "Get Patient by DNI")
     @GetMapping(path = "{dni}")
-    public ResponseEntity<Patient> get(@PathVariable String dni){
+    public ResponseEntity<Patient> get(@PathVariable String dni) {
         log.info("GET: patient {}", dni);
-        return ResponseEntity.ok(this.patientService.readByDni(dni));
+        return ResponseEntity.ok(this.patientService.findByDni(dni));
     }
 
     @Operation(summary = "Save a Patient")
     @PostMapping
-    public ResponseEntity<Patient> post (@RequestBody Patient patient){
+    public ResponseEntity<Patient> post(
+            @RequestBody Patient patient
+    ) {
         log.info("POST: patient {}", patient.getName());
-        return ResponseEntity.created(
-                URI.create(this.patientService.create(patient).getDni())).build();
+        Patient savedPatient = patientService.create(patient);
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(savedPatient);
     }
 
     @Operation(summary = "Update a Patient")
     @PutMapping(path = "{dni}")
-    public ResponseEntity<Patient> put(@PathVariable String dni, @RequestBody Patient patient){
+    public ResponseEntity<Patient> put(@PathVariable String dni, @RequestBody Patient patient) {
         log.info("PUT: patient {}", dni);
         return ResponseEntity.ok(this.patientService.update(patient, dni));
     }
 
     @DeleteMapping(path = "{dni}")
-    public ResponseEntity<Patient> delete(@PathVariable String dni){
+    public ResponseEntity<Patient> delete(@PathVariable String dni) {
         log.info("DELETE: patient {}", dni);
-        this.patientService.delete(dni);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(this.patientService.delete(dni));
     }
 }
