@@ -13,31 +13,39 @@ public class Appointment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false, length = 500)
+    private String reason;
+
     @Column(nullable = false, name = "appointment_date")
     private LocalDate appointmentDate;
 
-    @Column(nullable = false, name = "appointment_time")
-    private LocalTime appointmentTime;
+    @Column(nullable = false, name = "start_time")
+    private LocalTime startTime;
+
+    @Column(nullable = false, name = "end_time")
+    private LocalTime endTime;
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private Status status;
 
-    @ManyToOne
-    @JoinColumn(name = "patient_id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "patient_id", nullable = false)
     private Patient patient;
 
-    @ManyToOne
-    @JoinColumn(name = "doctor_id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "doctor_id", nullable = false)
     private Doctor doctor;
 
     public Appointment() {
     }
 
-    public Appointment(Long id, LocalDate appointmentDate, LocalTime appointmentTime, Status status, Patient patient, Doctor doctor) {
+    public Appointment(Long id, String reason, LocalDate appointmentDate, LocalTime startTime, LocalTime endTime, Status status, Patient patient, Doctor doctor) {
         this.id = id;
+        this.reason = reason;
         this.appointmentDate = appointmentDate;
-        this.appointmentTime = appointmentTime;
+        this.startTime = startTime;
+        this.endTime = endTime;
         this.status = status;
         this.patient = patient;
         this.doctor = doctor;
@@ -51,6 +59,14 @@ public class Appointment {
         this.id = id;
     }
 
+    public String getReason() {
+        return reason;
+    }
+
+    public void setReason(String reason) {
+        this.reason = reason;
+    }
+
     public LocalDate getAppointmentDate() {
         return appointmentDate;
     }
@@ -59,12 +75,20 @@ public class Appointment {
         this.appointmentDate = appointmentDate;
     }
 
-    public LocalTime getAppointmentTime() {
-        return appointmentTime;
+    public LocalTime getStartTime() {
+        return startTime;
     }
 
-    public void setAppointmentTime(LocalTime appointmentTime) {
-        this.appointmentTime = appointmentTime;
+    public void setStartTime(LocalTime startTime) {
+        this.startTime = startTime;
+    }
+
+    public LocalTime getEndTime() {
+        return endTime;
+    }
+
+    public void setEndTime(LocalTime endTime) {
+        this.endTime = endTime;
     }
 
     public Status getStatus() {

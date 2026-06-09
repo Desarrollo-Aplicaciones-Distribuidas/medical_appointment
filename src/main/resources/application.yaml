@@ -1,10 +1,10 @@
 spring:
   application:
-    name: medical_appointment
+    name: medical-appointment
   profiles:
     default: default
   config:
-    import: "configserver:http://localhost:7777"
+    import: "configserver:http://config-server:7777"
   datasource:
     url: ${db.url}
     username: ${db.username}
@@ -30,12 +30,12 @@ logging:
         sql: debug
 server:
   servlet:
-    context-path: /medical_appointment
+    context-path: /medical-appointment
 #  port: ${PORT:0}
   port: 8088
 eureka:
   instance:
     instance-id: "${spring.application.name}:${random.value}"
   client:
-    server-url:
-      defaultZone: http://localhost:8761/eureka/
+    service-url:
+      defaultZone: http://registry-server:8761/eureka/
