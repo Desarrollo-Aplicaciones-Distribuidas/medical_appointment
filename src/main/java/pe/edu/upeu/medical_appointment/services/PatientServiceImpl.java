@@ -7,7 +7,6 @@ import pe.edu.upeu.medical_appointment.exceptions.ResourceNotFoundException;
 import pe.edu.upeu.medical_appointment.repository.PatientRepository;
 
 import java.util.List;
-import java.util.NoSuchElementException;
 
 @Service
 @Transactional
@@ -56,6 +55,5 @@ public class PatientServiceImpl implements PatientService {
         patientToDelete.setDeleted(true);
         return this.patientRepository.save(patientToDelete);
     }
-
 
 }

@@ -3,15 +3,12 @@ package pe.edu.upeu.medical_appointment.services;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 import pe.edu.upeu.medical_appointment.entity.Appointment;
-import pe.edu.upeu.medical_appointment.entity.Doctor;
-import pe.edu.upeu.medical_appointment.entity.Patient;
 import pe.edu.upeu.medical_appointment.entity.Status;
 import pe.edu.upeu.medical_appointment.repository.AppointmentRepository;
 import pe.edu.upeu.medical_appointment.repository.DoctorRepository;
 import pe.edu.upeu.medical_appointment.repository.PatientRepository;
 
 import java.time.LocalDate;
-import java.time.LocalTime;
 import java.util.List;
 import java.util.NoSuchElementException;
 

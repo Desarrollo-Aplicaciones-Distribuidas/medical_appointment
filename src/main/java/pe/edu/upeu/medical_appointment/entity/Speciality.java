@@ -1,6 +1,5 @@
 package pe.edu.upeu.medical_appointment.entity;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
 

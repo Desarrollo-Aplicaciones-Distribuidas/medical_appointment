@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.*;
 import pe.edu.upeu.medical_appointment.entity.Patient;
 import pe.edu.upeu.medical_appointment.services.PatientService;
 
-import java.net.URI;
 import java.util.List;
 
 @RestController
