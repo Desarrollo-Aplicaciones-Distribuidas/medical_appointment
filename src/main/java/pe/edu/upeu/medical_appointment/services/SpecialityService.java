@@ -10,6 +10,8 @@ public interface SpecialityService {
 
     Speciality findById(Long id);
 
+    Speciality findByName(String name);
+
     Speciality update(Long id, Speciality speciality);
 
     Speciality delete(Long id);

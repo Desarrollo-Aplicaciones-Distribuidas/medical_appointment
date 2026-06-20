@@ -22,8 +22,7 @@ public class Speciality {
     private Boolean deleted = Boolean.FALSE;
 
 
-    @OneToMany(fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REMOVE})
-    @JoinColumn(name = "speciality_id", referencedColumnName = "id")
+    @OneToMany(mappedBy = "speciality", fetch = FetchType.LAZY)
     private List<Doctor> doctors;
 
     public Speciality() {

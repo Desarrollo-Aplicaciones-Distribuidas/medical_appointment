@@ -10,9 +10,13 @@ public interface DoctorService {
 
     Doctor findByName(String name);
 
-    Doctor update(String name, Doctor doctor );
+    Doctor findById(Long id);
+
+    Doctor update(String name, Doctor doctor);
 
     Doctor delete(String name);
 
     List<Doctor> getAll();
+
+    List<Doctor> getBySpecialityId(Long specialityId);
 }

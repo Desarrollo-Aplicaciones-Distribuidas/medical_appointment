@@ -8,11 +8,15 @@ public interface PatientService {
 
     Patient create(Patient patient);
 
+    Patient findById(Long id);
+
     Patient findByDni(String dni);
 
-    Patient update(Patient patient, String dni);
+    List<Patient> search(String term);
 
-    Patient delete(String dni);
+    Patient update(Long id, Patient patient);
+
+    Patient delete(Long id);
 
     List<Patient> getAll();
 }

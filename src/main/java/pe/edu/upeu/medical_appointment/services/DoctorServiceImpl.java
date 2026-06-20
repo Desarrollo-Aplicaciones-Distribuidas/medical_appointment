@@ -36,6 +36,16 @@ public class DoctorServiceImpl implements DoctorService {
     }
 
     @Override
+    public Doctor findById(Long id) {
+        return doctorRepository.findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Doctor not found with id: " + id
+                        )
+                );
+    }
+
+    @Override
     public Doctor update(String name, Doctor doctor) {
         var doctorToUpdate = this.findByName(name);
 
@@ -52,5 +62,10 @@ public class DoctorServiceImpl implements DoctorService {
         var doctorToDelete = this.findByName(name);
         doctorToDelete.setDeleted(Boolean.TRUE);
         return this.doctorRepository.save(doctorToDelete);
+    }
+
+    @Override
+    public List<Doctor> getBySpecialityId(Long specialityId) {
+        return doctorRepository.findBySpecialityIdAndDeletedFalse(specialityId);
     }
 }

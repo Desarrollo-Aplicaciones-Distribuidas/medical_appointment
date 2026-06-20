@@ -47,11 +47,33 @@ public class DoctorScheduleServiceImpl implements DoctorScheduleService {
             DayOfWeek dayOfWeek
     ) {
         return doctorScheduleRepository
-                .findByDoctorIdAndDayOfWeek(doctorId, dayOfWeek);
+                .findByDoctorIdAndDayOfWeek(
+                        doctorId,
+                        dayOfWeek
+                );
     }
 
     @Override
-    public DoctorSchedule create(DoctorSchedule doctorSchedule) {
+    public DoctorSchedule create(
+            DoctorSchedule doctorSchedule
+    ) {
+        Long doctorId = doctorSchedule.getDoctor().getId();
+
+        List<DoctorSchedule> overlaps =
+                doctorScheduleRepository
+                        .findByDoctorIdAndDayOfWeekAndStartTimeLessThanAndEndTimeGreaterThan(
+                                doctorId,
+                                doctorSchedule.getDayOfWeek(),
+                                doctorSchedule.getEndTime(),
+                                doctorSchedule.getStartTime()
+                        );
+
+        if (!overlaps.isEmpty()) {
+            throw new IllegalArgumentException(
+                    "The doctor already has a schedule in that time range"
+            );
+        }
+
         return doctorScheduleRepository.save(doctorSchedule);
     }
 
@@ -60,8 +82,30 @@ public class DoctorScheduleServiceImpl implements DoctorScheduleService {
             Long id,
             DoctorSchedule doctorSchedule
     ) {
-
         DoctorSchedule existing = getById(id);
+
+        Long doctorId = doctorSchedule.getDoctor().getId();
+
+        List<DoctorSchedule> overlaps =
+                doctorScheduleRepository
+                        .findByDoctorIdAndDayOfWeekAndStartTimeLessThanAndEndTimeGreaterThan(
+                                doctorId,
+                                doctorSchedule.getDayOfWeek(),
+                                doctorSchedule.getEndTime(),
+                                doctorSchedule.getStartTime()
+                        );
+
+        boolean hasOverlapWithAnotherSchedule =
+                overlaps.stream()
+                        .anyMatch(schedule ->
+                                !schedule.getId().equals(id)
+                        );
+
+        if (hasOverlapWithAnotherSchedule) {
+            throw new IllegalArgumentException(
+                    "The doctor already has a schedule in that time range"
+            );
+        }
 
         existing.setDayOfWeek(
                 doctorSchedule.getDayOfWeek()
@@ -73,6 +117,10 @@ public class DoctorScheduleServiceImpl implements DoctorScheduleService {
 
         existing.setEndTime(
                 doctorSchedule.getEndTime()
+        );
+
+        existing.setAppointmentDuration(
+                doctorSchedule.getAppointmentDuration()
         );
 
         existing.setDoctor(

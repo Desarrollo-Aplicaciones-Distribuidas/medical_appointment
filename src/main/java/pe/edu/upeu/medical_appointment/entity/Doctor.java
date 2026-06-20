@@ -24,16 +24,21 @@ public class Doctor {
     @Column(nullable = false)
     private Boolean deleted = Boolean.FALSE;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "speciality_id", nullable = false)
+    private Speciality speciality;
+
     public Doctor() {
     }
 
-    public Doctor(Long id, String name, String lastName, String email, String phone, Boolean deleted) {
+    public Doctor(Long id, String name, String lastName, String email, String phone, Boolean deleted, Speciality speciality) {
         this.id = id;
         this.name = name;
         this.lastName = lastName;
         this.email = email;
         this.phone = phone;
         this.deleted = deleted;
+        this.speciality = speciality;
     }
 
     public Long getId() {
@@ -82,5 +87,13 @@ public class Doctor {
 
     public void setDeleted(Boolean deleted) {
         this.deleted = deleted;
+    }
+
+    public Speciality getSpeciality() {
+        return speciality;
+    }
+
+    public void setSpeciality(Speciality speciality) {
+        this.speciality = speciality;
     }
 }

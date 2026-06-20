@@ -23,7 +23,22 @@ public interface AppointmentService {
             LocalDate date
     );
 
+    List<Appointment> getByPatientIdAndDate(
+            Long patientId,
+            LocalDate date
+    );
+
     List<Appointment> getByStatus(Status status);
+
+    List<Appointment> getByDoctorIdAndStatus(
+            Long doctorId,
+            Status status
+    );
+
+    List<Appointment> getByPatientIdAndStatus(
+            Long patientId,
+            Status status
+    );
 
     Appointment create(Appointment appointment);
 
