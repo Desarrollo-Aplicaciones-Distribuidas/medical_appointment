@@ -1,9 +1,8 @@
 package pe.edu.upeu.medical_appointment.entity;
 
 public enum Status {
-    PENDING,
+    SCHEDULED,
     CONFIRMED,
-    COMPLETED,
     CANCELLED,
-    NO_SHOW
+    COMPLETED
 }

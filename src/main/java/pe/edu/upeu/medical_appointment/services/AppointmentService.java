@@ -16,6 +16,8 @@ public interface AppointmentService {
 
     List<Appointment> getByPatientId(Long patientId);
 
+    List<Appointment> getByPatientDni(String dni);
+
     List<Appointment> getByDate(LocalDate date);
 
     List<Appointment> getByDoctorIdAndDate(
@@ -44,5 +46,9 @@ public interface AppointmentService {
 
     Appointment update(Long id, Appointment appointment);
 
-    void delete(Long id);
+    Appointment cancel(Long id);
+
+    Appointment confirm(Long id);
+
+    Appointment complete(Long id);
 }

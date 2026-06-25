@@ -1,7 +1,9 @@
 package pe.edu.upeu.medical_appointment.services;
 
 import jakarta.transaction.Transactional;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 import pe.edu.upeu.medical_appointment.entity.Appointment;
 import pe.edu.upeu.medical_appointment.entity.Doctor;
 import pe.edu.upeu.medical_appointment.entity.Patient;
@@ -38,9 +40,7 @@ public class AppointmentServiceImpl implements AppointmentService {
     }
 
     @Override
-    public Appointment getById(
-            Long id
-    ) {
+    public Appointment getById(Long id) {
         return appointmentRepository.findById(id)
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
@@ -50,23 +50,39 @@ public class AppointmentServiceImpl implements AppointmentService {
     }
 
     @Override
-    public List<Appointment> getByDoctorId(
-            Long doctorId
-    ) {
+    public List<Appointment> getByDoctorId(Long doctorId) {
         return appointmentRepository.findByDoctorId(doctorId);
     }
 
     @Override
-    public List<Appointment> getByPatientId(
-            Long patientId
-    ) {
+    public List<Appointment> getByPatientId(Long patientId) {
         return appointmentRepository.findByPatientId(patientId);
     }
 
     @Override
-    public List<Appointment> getByDate(
-            LocalDate date
-    ) {
+    public List<Appointment> getByPatientDni(String dni) {
+        if (dni == null || dni.trim().isEmpty()) {
+            throw new IllegalArgumentException(
+                    "Patient dni is required"
+            );
+        }
+
+        Patient patient = patientRepository.findByDniAndDeletedFalse(
+                        dni.trim()
+                )
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Patient not found with dni: " + dni
+                        )
+                );
+
+        return appointmentRepository.findByPatientId(
+                patient.getId()
+        );
+    }
+
+    @Override
+    public List<Appointment> getByDate(LocalDate date) {
         return appointmentRepository.findByAppointmentDateOrderByStartTime(date);
     }
 
@@ -95,9 +111,7 @@ public class AppointmentServiceImpl implements AppointmentService {
     }
 
     @Override
-    public List<Appointment> getByStatus(
-            Status status
-    ) {
+    public List<Appointment> getByStatus(Status status) {
         return appointmentRepository
                 .findByStatusOrderByAppointmentDateAscStartTimeAsc(status);
     }
@@ -127,9 +141,7 @@ public class AppointmentServiceImpl implements AppointmentService {
     }
 
     @Override
-    public Appointment create(
-            Appointment appointment
-    ) {
+    public Appointment create(Appointment appointment) {
         validateAppointment(appointment);
 
         Long doctorId = appointment.getDoctor().getId();
@@ -191,32 +203,89 @@ public class AppointmentServiceImpl implements AppointmentService {
                 appointment.getEndTime()
         );
 
-        existing.setStatus(
-                appointment.getStatus()
-        );
-
-        existing.setPatient(
-                patient
-        );
-
-        existing.setDoctor(
-                doctor
-        );
+        existing.setPatient(patient);
+        existing.setDoctor(doctor);
 
         return appointmentRepository.save(existing);
     }
 
     @Override
-    public void delete(
-            Long id
-    ) {
-        Appointment existing = getById(id);
-        appointmentRepository.delete(existing);
+    public Appointment cancel(Long id) {
+        Appointment appointment = getById(id);
+
+        if (appointment.getStatus() == Status.CANCELLED) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "La cita ya se encuentra cancelada"
+            );
+        }
+
+        if (appointment.getStatus() == Status.COMPLETED) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "No se puede cancelar una cita que ya fue completada"
+            );
+        }
+
+        appointment.setStatus(Status.CANCELLED);
+
+        return appointmentRepository.save(appointment);
     }
 
-    private void validateAppointment(
-            Appointment appointment
-    ) {
+    @Override
+    public Appointment confirm(Long id) {
+        Appointment appointment = getById(id);
+
+        if (appointment.getStatus() == Status.CANCELLED) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "No se puede confirmar una cita cancelada"
+            );
+        }
+
+        if (appointment.getStatus() == Status.COMPLETED) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "No se puede confirmar una cita que ya fue completada"
+            );
+        }
+
+        if (appointment.getStatus() == Status.CONFIRMED) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "La cita ya se encuentra confirmada"
+            );
+        }
+
+        appointment.setStatus(Status.CONFIRMED);
+
+        return appointmentRepository.save(appointment);
+    }
+
+    @Override
+    public Appointment complete(Long id) {
+        Appointment appointment = getById(id);
+
+        if (appointment.getStatus() == Status.CANCELLED) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "No se puede completar una cita cancelada"
+            );
+        }
+
+        if (appointment.getStatus() == Status.COMPLETED) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "La cita ya se encuentra completada"
+            );
+        }
+
+        appointment.setStatus(Status.COMPLETED);
+
+        return appointmentRepository.save(appointment);
+    }
+
+    private void validateAppointment(Appointment appointment) {
         if (appointment == null) {
             throw new IllegalArgumentException(
                     "Appointment is required"
@@ -254,8 +323,7 @@ public class AppointmentServiceImpl implements AppointmentService {
             );
         }
 
-        if (!appointment.getStartTime()
-                .isBefore(appointment.getEndTime())) {
+        if (!appointment.getStartTime().isBefore(appointment.getEndTime())) {
             throw new IllegalArgumentException(
                     "Start time must be before end time"
             );
@@ -304,8 +372,12 @@ public class AppointmentServiceImpl implements AppointmentService {
 
         boolean hasOverlap =
                 overlaps.stream()
+                        .filter(existingAppointment ->
+                                existingAppointment.getStatus() != Status.CANCELLED
+                        )
                         .anyMatch(existingAppointment ->
-                                !existingAppointment.getId().equals(appointmentId)
+                                appointmentId == null ||
+                                        !existingAppointment.getId().equals(appointmentId)
                         );
 
         if (hasOverlap) {
@@ -315,9 +387,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         }
     }
 
-    private Doctor findDoctorById(
-            Long doctorId
-    ) {
+    private Doctor findDoctorById(Long doctorId) {
         return doctorRepository.findById(doctorId)
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
@@ -326,9 +396,7 @@ public class AppointmentServiceImpl implements AppointmentService {
                 );
     }
 
-    private Patient findPatientById(
-            Long patientId
-    ) {
+    private Patient findPatientById(Long patientId) {
         return patientRepository.findById(patientId)
                 .orElseThrow(() ->
                         new ResourceNotFoundException(

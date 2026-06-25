@@ -16,7 +16,10 @@ import pe.edu.upeu.medical_appointment.entity.Status;
 import pe.edu.upeu.medical_appointment.services.AppointmentService;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
+import java.util.function.Function;
 
 @RestController
 @RequestMapping("/appointments")
@@ -52,11 +55,6 @@ public class AppointmentController {
     public ResponseEntity<AppointmentDto.AppointmentResponse> getAppointmentById(
             @PathVariable Long id
     ) {
-        log.info(
-                "REST request to get appointment with id {}",
-                id
-        );
-
         Appointment appointment =
                 appointmentService.getById(id);
 
@@ -89,13 +87,28 @@ public class AppointmentController {
     public ResponseEntity<List<AppointmentDto.AppointmentResponse>> getAppointmentsByPatient(
             @PathVariable Long patientId
     ) {
-        log.info(
-                "REST request to get appointments for patient {}",
-                patientId
-        );
 
         List<AppointmentDto.AppointmentResponse> response =
                 appointmentService.getByPatientId(patientId)
+                        .stream()
+                        .map(this::toResponse)
+                        .toList();
+
+        return ResponseEntity.ok(response);
+    }
+
+    @Operation(summary = "Get appointments by patient DNI")
+    @GetMapping("/patient/dni/{dni}")
+    public ResponseEntity<List<AppointmentDto.AppointmentResponse>> getAppointmentsByPatientDni(
+            @PathVariable String dni
+    ) {
+        log.info(
+                "REST request to get appointments for patient with dni {}",
+                dni
+        );
+
+        List<AppointmentDto.AppointmentResponse> response =
+                appointmentService.getByPatientDni(dni)
                         .stream()
                         .map(this::toResponse)
                         .toList();
@@ -269,7 +282,7 @@ public class AppointmentController {
     @PutMapping("/{id}")
     public ResponseEntity<AppointmentDto.AppointmentResponse> updateAppointment(
             @PathVariable Long id,
-            @Valid @RequestBody AppointmentDto.AppointmentRequest request
+            @Valid @RequestBody AppointmentDto.AppointmentUpdateRequest request
     ) {
         log.info(
                 "REST request to update appointment with id {}",
@@ -290,59 +303,126 @@ public class AppointmentController {
         );
     }
 
-    @Operation(summary = "Delete appointment")
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteAppointment(
+    @Operation(summary = "Cancel appointment")
+    @PatchMapping("/{id}/cancel")
+    public ResponseEntity<AppointmentDto.AppointmentStatusResponse> cancelAppointment(
             @PathVariable Long id
     ) {
         log.info(
-                "REST request to delete appointment with id {}",
+                "REST request to cancel appointment with id {}",
                 id
         );
 
-        appointmentService.delete(id);
+        return changeAppointmentStatus(
+                id,
+                appointmentService::cancel,
+                "La cita fue cancelada correctamente"
+        );
+    }
 
-        return ResponseEntity.noContent().build();
+    @Operation(summary = "Confirm appointment")
+    @PatchMapping("/{id}/confirm")
+    public ResponseEntity<AppointmentDto.AppointmentStatusResponse> confirmAppointment(
+            @PathVariable Long id
+    ) {
+        log.info(
+                "REST request to confirm appointment with id {}",
+                id
+        );
+
+        return changeAppointmentStatus(
+                id,
+                appointmentService::confirm,
+                "La cita fue confirmada correctamente"
+        );
+    }
+
+    @Operation(summary = "Complete appointment")
+    @PatchMapping("/{id}/complete")
+    public ResponseEntity<AppointmentDto.AppointmentStatusResponse> completeAppointment(
+            @PathVariable Long id
+    ) {
+        log.info(
+                "REST request to complete appointment with id {}",
+                id
+        );
+
+        return changeAppointmentStatus(
+                id,
+                appointmentService::complete,
+                "La cita fue completada correctamente"
+        );
+    }
+
+    private ResponseEntity<AppointmentDto.AppointmentStatusResponse> changeAppointmentStatus(
+            Long id,
+            Function<Long, Appointment> statusAction,
+            String message
+    ) {
+        Status previousStatus =
+                appointmentService.getById(id).getStatus();
+
+        Appointment updatedAppointment =
+                statusAction.apply(id);
+
+        return ResponseEntity.ok(
+                toStatusResponse(
+                        updatedAppointment,
+                        previousStatus,
+                        message
+                )
+        );
     }
 
     private Appointment toEntity(
             AppointmentDto.AppointmentRequest request
     ) {
+        return buildAppointment(
+                request.reason(),
+                request.appointmentDate(),
+                request.startTime(),
+                request.endTime(),
+                request.patientId(),
+                request.doctorId()
+        );
+    }
+
+    private Appointment toEntity(
+            AppointmentDto.AppointmentUpdateRequest request
+    ) {
+        return buildAppointment(
+                request.reason(),
+                request.appointmentDate(),
+                request.startTime(),
+                request.endTime(),
+                request.patientId(),
+                request.doctorId()
+        );
+    }
+
+    private Appointment buildAppointment(
+            String reason,
+            LocalDate appointmentDate,
+            LocalTime startTime,
+            LocalTime endTime,
+            Long patientId,
+            Long doctorId
+    ) {
         Patient patient = new Patient();
-        patient.setId(request.patientId());
+        patient.setId(patientId);
 
         Doctor doctor = new Doctor();
-        doctor.setId(request.doctorId());
+        doctor.setId(doctorId);
 
         Appointment appointment = new Appointment();
 
-        appointment.setReason(
-                request.reason()
-        );
-
-        appointment.setAppointmentDate(
-                request.appointmentDate()
-        );
-
-        appointment.setStartTime(
-                request.startTime()
-        );
-
-        appointment.setEndTime(
-                request.endTime()
-        );
-
-        appointment.setStatus(
-                request.status()
-        );
-
-        appointment.setPatient(
-                patient
-        );
-
-        appointment.setDoctor(
-                doctor
-        );
+        appointment.setReason(reason);
+        appointment.setAppointmentDate(appointmentDate);
+        appointment.setStartTime(startTime);
+        appointment.setEndTime(endTime);
+        appointment.setStatus(Status.SCHEDULED);
+        appointment.setPatient(patient);
+        appointment.setDoctor(doctor);
 
         return appointment;
     }
@@ -356,14 +436,11 @@ public class AppointmentController {
 
         if (appointment.getPatient() != null) {
             patientId = appointment.getPatient().getId();
-
-            patientFullName =
-                    appointment.getPatient().getName()
-                            + " "
-                            + appointment.getPatient().getLastName();
-
-            patientDni =
-                    appointment.getPatient().getDni();
+            patientFullName = buildFullName(
+                    appointment.getPatient().getName(),
+                    appointment.getPatient().getLastName()
+            );
+            patientDni = appointment.getPatient().getDni();
         }
 
         Long doctorId = null;
@@ -373,11 +450,10 @@ public class AppointmentController {
 
         if (appointment.getDoctor() != null) {
             doctorId = appointment.getDoctor().getId();
-
-            doctorFullName =
-                    appointment.getDoctor().getName()
-                            + " "
-                            + appointment.getDoctor().getLastName();
+            doctorFullName = buildFullName(
+                    appointment.getDoctor().getName(),
+                    appointment.getDoctor().getLastName()
+            );
 
             if (appointment.getDoctor().getSpeciality() != null) {
                 specialityId =
@@ -405,34 +481,33 @@ public class AppointmentController {
         );
     }
 
-    private AppointmentDto.AppointmentComboResponse toComboResponse(
-            Appointment appointment
+    private AppointmentDto.AppointmentStatusResponse toStatusResponse(
+            Appointment appointment,
+            Status previousStatus,
+            String message
     ) {
-        String patientFullName = null;
-        String doctorFullName = null;
-
-        if (appointment.getPatient() != null) {
-            patientFullName =
-                    appointment.getPatient().getName()
-                            + " "
-                            + appointment.getPatient().getLastName();
-        }
-
-        if (appointment.getDoctor() != null) {
-            doctorFullName =
-                    appointment.getDoctor().getName()
-                            + " "
-                            + appointment.getDoctor().getLastName();
-        }
-
-        return new AppointmentDto.AppointmentComboResponse(
+        return new AppointmentDto.AppointmentStatusResponse(
                 appointment.getId(),
-                appointment.getAppointmentDate(),
-                appointment.getStartTime(),
-                appointment.getEndTime(),
+                previousStatus,
                 appointment.getStatus(),
-                patientFullName,
-                doctorFullName
+                message,
+                LocalDateTime.now()
         );
+    }
+
+    private String buildFullName(
+            String name,
+            String lastName
+    ) {
+        String safeName =
+                name != null ? name.trim() : "";
+
+        String safeLastName =
+                lastName != null ? lastName.trim() : "";
+
+        String fullName =
+                (safeName + " " + safeLastName).trim();
+
+        return fullName.isEmpty() ? null : fullName;
     }
 }
