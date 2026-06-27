@@ -6,15 +6,15 @@ import java.util.List;
 
 public interface SpecialityService {
 
-    Speciality create(Speciality speciality);
+    List<Speciality> getAll();
 
     Speciality findById(Long id);
 
     Speciality findByName(String name);
 
+    Speciality create(Speciality speciality);
+
     Speciality update(Long id, Speciality speciality);
 
     Speciality delete(Long id);
-
-    List<Speciality> getAll();
 }

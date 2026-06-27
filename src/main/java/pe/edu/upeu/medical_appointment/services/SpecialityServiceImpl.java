@@ -7,6 +7,7 @@ import pe.edu.upeu.medical_appointment.exceptions.ResourceNotFoundException;
 import pe.edu.upeu.medical_appointment.repository.SpecialityRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Transactional
@@ -14,9 +15,7 @@ public class SpecialityServiceImpl implements SpecialityService {
 
     private final SpecialityRepository specialityRepository;
 
-    public SpecialityServiceImpl(
-            SpecialityRepository specialityRepository
-    ) {
+    public SpecialityServiceImpl(SpecialityRepository specialityRepository) {
         this.specialityRepository = specialityRepository;
     }
 
@@ -26,41 +25,32 @@ public class SpecialityServiceImpl implements SpecialityService {
     }
 
     @Override
-    public Speciality findById(
-            Long id
-    ) {
-        return specialityRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                "Speciality not found with id: " + id
-                        )
-                );
+    public Speciality findById(Long id) {
+        return specialityRepository.findByIdAndDeletedFalse(id).orElseThrow(() -> new ResourceNotFoundException("Speciality not found with id: " + id));
     }
 
     @Override
-    public Speciality findByName(
-            String name
-    ) {
-        return specialityRepository.findByNameIgnoreCaseAndDeletedFalse(name)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                "Speciality not found with name: " + name
-                        )
-                );
+    public Speciality findByName(String name) {
+        return specialityRepository.findByNameIgnoreCaseAndDeletedFalse(name).orElseThrow(() -> new ResourceNotFoundException("Speciality not found with name: " + name));
     }
 
     @Override
-    public Speciality create(
-            Speciality speciality
-    ) {
+    public Speciality create(Speciality speciality) {
         validateSpeciality(speciality);
 
-        if (specialityRepository.existsByNameIgnoreCaseAndDeletedFalse(
-                speciality.getName()
-        )) {
-            throw new IllegalArgumentException(
-                    "A speciality with name " + speciality.getName() + " already exists"
-            );
+        Optional<Speciality> deletedSpeciality = specialityRepository.findByNameIgnoreCaseAndDeletedTrue(speciality.getName());
+
+        if (deletedSpeciality.isPresent()) {
+            Speciality specialityToRestore = deletedSpeciality.get();
+
+            specialityToRestore.setDescription(speciality.getDescription());
+            specialityToRestore.setDeleted(Boolean.FALSE);
+
+            return specialityRepository.save(specialityToRestore);
+        }
+
+        if (specialityRepository.existsByNameIgnoreCaseAndDeletedFalse(speciality.getName())) {
+            throw new IllegalArgumentException("A speciality with name " + speciality.getName() + " already exists");
         }
 
         speciality.setDeleted(Boolean.FALSE);
@@ -69,72 +59,45 @@ public class SpecialityServiceImpl implements SpecialityService {
     }
 
     @Override
-    public Speciality update(
-            Long id,
-            Speciality speciality
-    ) {
-        Speciality specialityToUpdate =
-                findById(id);
+    public Speciality update(Long id, Speciality speciality) {
+        Speciality specialityToUpdate = findById(id);
 
         validateSpeciality(speciality);
 
-        if (!specialityToUpdate.getName().equalsIgnoreCase(
-                speciality.getName()
-        ) && specialityRepository.existsByNameIgnoreCaseAndDeletedFalse(
-                speciality.getName()
-        )) {
-            throw new IllegalArgumentException(
-                    "A speciality with name " + speciality.getName() + " already exists"
-            );
+        boolean nameChanged = !specialityToUpdate.getName().equalsIgnoreCase(speciality.getName());
+
+        if (nameChanged && specialityRepository.existsByNameIgnoreCaseAndDeletedFalse(speciality.getName())) {
+            throw new IllegalArgumentException("A speciality with name " + speciality.getName() + " already exists");
         }
 
-        specialityToUpdate.setName(
-                speciality.getName()
-        );
-
-        specialityToUpdate.setDescription(
-                speciality.getDescription()
-        );
+        specialityToUpdate.setName(speciality.getName());
+        specialityToUpdate.setDescription(speciality.getDescription());
 
         return specialityRepository.save(specialityToUpdate);
     }
 
     @Override
-    public Speciality delete(
-            Long id
-    ) {
-        Speciality specialityToDelete =
-                findById(id);
+    public Speciality delete(Long id) {
+        Speciality specialityToDelete = findById(id);
 
         specialityToDelete.setDeleted(Boolean.TRUE);
 
         return specialityRepository.save(specialityToDelete);
     }
 
-    private void validateSpeciality(
-            Speciality speciality
-    ) {
+    private void validateSpeciality(Speciality speciality) {
         if (speciality == null) {
-            throw new IllegalArgumentException(
-                    "Speciality is required"
-            );
+            throw new IllegalArgumentException("Speciality is required");
         }
 
-        if (speciality.getName() == null ||
-                speciality.getName().trim().isEmpty()) {
-            throw new IllegalArgumentException(
-                    "Speciality name is required"
-            );
+        if (speciality.getName() == null || speciality.getName().trim().isEmpty()) {
+            throw new IllegalArgumentException("Speciality name is required");
         }
 
-        speciality.setName(
-                speciality.getName().trim()
-        );
+        speciality.setName(speciality.getName().trim());
 
         if (speciality.getDescription() != null) {
-            speciality.setDescription(
-                    speciality.getDescription().trim()
-            );
+            speciality.setDescription(speciality.getDescription().trim());
         }
     }
 }

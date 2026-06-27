@@ -8,11 +8,13 @@ import java.util.Optional;
 
 public interface SpecialityRepository extends JpaRepository<Speciality, Long> {
 
+    List<Speciality> findByDeletedFalse();
+
     Optional<Speciality> findByIdAndDeletedFalse(Long id);
 
     Optional<Speciality> findByNameIgnoreCaseAndDeletedFalse(String name);
 
-    List<Speciality> findByDeletedFalse();
+    Optional<Speciality> findByNameIgnoreCaseAndDeletedTrue(String name);
 
     boolean existsByNameIgnoreCaseAndDeletedFalse(String name);
 }

@@ -1,8 +1,8 @@
 package pe.edu.upeu.medical_appointment.services;
 
+import pe.edu.upeu.medical_appointment.dtos.DoctorScheduleDto;
 import pe.edu.upeu.medical_appointment.entity.DayOfWeek;
 import pe.edu.upeu.medical_appointment.entity.DoctorSchedule;
-
 
 import java.util.List;
 
@@ -10,7 +10,7 @@ public interface DoctorScheduleService {
 
     List<DoctorSchedule> getAll();
 
-    DoctorSchedule getById(Long id);
+    DoctorSchedule findById(Long id);
 
     List<DoctorSchedule> getByDoctorId(Long doctorId);
 
@@ -21,7 +21,9 @@ public interface DoctorScheduleService {
 
     DoctorSchedule create(DoctorSchedule doctorSchedule);
 
+    List<DoctorSchedule> createBulk(DoctorScheduleDto.DoctorScheduleBulkRequest request);
+
     DoctorSchedule update(Long id, DoctorSchedule doctorSchedule);
 
-    void delete(Long id);
+    DoctorSchedule delete(Long id);
 }

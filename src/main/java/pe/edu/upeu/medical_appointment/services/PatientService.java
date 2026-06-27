@@ -18,5 +18,7 @@ public interface PatientService {
 
     Patient delete(Long id);
 
+    Patient restore(Long id);
+
     List<Patient> getAll();
 }

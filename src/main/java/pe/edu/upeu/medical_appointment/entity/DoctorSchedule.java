@@ -7,12 +7,13 @@ import java.time.LocalTime;
 @Entity
 @Table(name = "doctor_schedules")
 public class DoctorSchedule {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "day_of_week", nullable = false)
+    @Column(name = "day_of_week", nullable = false, length = 16)
     private DayOfWeek dayOfWeek;
 
     @Column(name = "start_time", nullable = false)
@@ -21,8 +22,11 @@ public class DoctorSchedule {
     @Column(name = "end_time", nullable = false)
     private LocalTime endTime;
 
-    @Column(name = "appointment_duration",nullable = false)
+    @Column(name = "appointment_duration", nullable = false)
     private Integer appointmentDuration;
+
+    @Column(nullable = false)
+    private Boolean deleted = Boolean.FALSE;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "doctor_id", nullable = false)
@@ -31,12 +35,21 @@ public class DoctorSchedule {
     public DoctorSchedule() {
     }
 
-    public DoctorSchedule(Long id, DayOfWeek dayOfWeek, LocalTime startTime, LocalTime endTime, Integer appointmentDuration, Doctor doctor) {
+    public DoctorSchedule(
+            Long id,
+            DayOfWeek dayOfWeek,
+            LocalTime startTime,
+            LocalTime endTime,
+            Integer appointmentDuration,
+            Boolean deleted,
+            Doctor doctor
+    ) {
         this.id = id;
         this.dayOfWeek = dayOfWeek;
         this.startTime = startTime;
         this.endTime = endTime;
         this.appointmentDuration = appointmentDuration;
+        this.deleted = deleted;
         this.doctor = doctor;
     }
 
@@ -78,6 +91,14 @@ public class DoctorSchedule {
 
     public void setAppointmentDuration(Integer appointmentDuration) {
         this.appointmentDuration = appointmentDuration;
+    }
+
+    public Boolean getDeleted() {
+        return deleted;
+    }
+
+    public void setDeleted(Boolean deleted) {
+        this.deleted = deleted;
     }
 
     public Doctor getDoctor() {

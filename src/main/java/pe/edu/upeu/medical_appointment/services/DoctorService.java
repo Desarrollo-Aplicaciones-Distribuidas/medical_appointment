@@ -6,17 +6,17 @@ import java.util.List;
 
 public interface DoctorService {
 
-    Doctor create(Doctor doctor);
-
-    Doctor findByName(String name);
-
-    Doctor findById(Long id);
-
-    Doctor update(String name, Doctor doctor);
-
-    Doctor delete(String name);
-
     List<Doctor> getAll();
 
     List<Doctor> getBySpecialityId(Long specialityId);
+
+    Doctor findById(Long id);
+
+    Doctor findByEmail(String email);
+
+    Doctor create(Doctor doctor);
+
+    Doctor update(Long id, Doctor doctor);
+
+    Doctor delete(Long id);
 }

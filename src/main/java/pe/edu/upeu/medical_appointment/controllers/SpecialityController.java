@@ -17,14 +17,11 @@ import java.util.List;
 @RequestMapping(path = "/specialities")
 public class SpecialityController {
 
-    private static final Logger log =
-            LoggerFactory.getLogger(SpecialityController.class);
+    private static final Logger log = LoggerFactory.getLogger(SpecialityController.class);
 
     private final SpecialityService specialityService;
 
-    public SpecialityController(
-            SpecialityService specialityService
-    ) {
+    public SpecialityController(SpecialityService specialityService) {
         this.specialityService = specialityService;
     }
 
@@ -33,11 +30,7 @@ public class SpecialityController {
     public ResponseEntity<List<SpecialityDto.SpecialityResponse>> getAll() {
         log.info("GET: all specialities");
 
-        List<SpecialityDto.SpecialityResponse> response =
-                specialityService.getAll()
-                        .stream()
-                        .map(this::toResponse)
-                        .toList();
+        List<SpecialityDto.SpecialityResponse> response = specialityService.getAll().stream().map(this::toResponse).toList();
 
         return ResponseEntity.ok(response);
     }
@@ -47,136 +40,82 @@ public class SpecialityController {
     public ResponseEntity<List<SpecialityDto.SpecialityComboResponse>> getAllForCombo() {
         log.info("GET: all specialities for combo");
 
-        List<SpecialityDto.SpecialityComboResponse> response =
-                specialityService.getAll()
-                        .stream()
-                        .map(this::toComboResponse)
-                        .toList();
+        List<SpecialityDto.SpecialityComboResponse> response = specialityService.getAll().stream().map(this::toComboResponse).toList();
 
         return ResponseEntity.ok(response);
     }
 
     @Operation(summary = "Get Speciality by ID")
     @GetMapping("/{id}")
-    public ResponseEntity<SpecialityDto.SpecialityResponse> findById(
-            @PathVariable Long id
-    ) {
+    public ResponseEntity<SpecialityDto.SpecialityResponse> findById(@PathVariable Long id) {
         log.info("GET: speciality with id {}", id);
 
-        Speciality speciality =
-                specialityService.findById(id);
+        Speciality speciality = specialityService.findById(id);
 
-        return ResponseEntity.ok(
-                toResponse(speciality)
-        );
+        return ResponseEntity.ok(toResponse(speciality));
     }
 
     @Operation(summary = "Get Speciality by name")
     @GetMapping("/name/{name}")
-    public ResponseEntity<SpecialityDto.SpecialityResponse> findByName(
-            @PathVariable String name
-    ) {
+    public ResponseEntity<SpecialityDto.SpecialityResponse> findByName(@PathVariable String name) {
         log.info("GET: speciality with name {}", name);
 
-        Speciality speciality =
-                specialityService.findByName(name);
+        Speciality speciality = specialityService.findByName(name);
 
-        return ResponseEntity.ok(
-                toResponse(speciality)
-        );
+        return ResponseEntity.ok(toResponse(speciality));
     }
 
     @Operation(summary = "Save a Speciality")
     @PostMapping
-    public ResponseEntity<SpecialityDto.SpecialityResponse> post(
-            @Valid @RequestBody SpecialityDto.SpecialityRequest request
-    ) {
+    public ResponseEntity<SpecialityDto.SpecialityResponse> post(@Valid @RequestBody SpecialityDto.SpecialityRequest request) {
         log.info("POST: speciality {}", request.name());
 
-        Speciality speciality =
-                toEntity(request);
+        Speciality speciality = toEntity(request);
 
-        Speciality savedSpeciality =
-                specialityService.create(speciality);
+        Speciality savedSpeciality = specialityService.create(speciality);
 
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(toResponse(savedSpeciality));
+        return ResponseEntity.status(HttpStatus.CREATED).body(toResponse(savedSpeciality));
     }
 
     @Operation(summary = "Update a Speciality by ID")
     @PutMapping("/{id}")
-    public ResponseEntity<SpecialityDto.SpecialityResponse> update(
-            @PathVariable Long id,
-            @Valid @RequestBody SpecialityDto.SpecialityRequest request
-    ) {
+    public ResponseEntity<SpecialityDto.SpecialityResponse> update(@PathVariable Long id, @Valid @RequestBody SpecialityDto.SpecialityRequest request) {
         log.info("PUT: speciality with id {}", id);
 
-        Speciality speciality =
-                toEntity(request);
+        Speciality speciality = toEntity(request);
 
-        Speciality updatedSpeciality =
-                specialityService.update(
-                        id,
-                        speciality
-                );
+        Speciality updatedSpeciality = specialityService.update(id, speciality);
 
-        return ResponseEntity.ok(
-                toResponse(updatedSpeciality)
-        );
+        return ResponseEntity.ok(toResponse(updatedSpeciality));
     }
 
     @Operation(summary = "Delete a Speciality by ID")
     @DeleteMapping("/{id}")
-    public ResponseEntity<SpecialityDto.SpecialityResponse> delete(
-            @PathVariable Long id
-    ) {
+    public ResponseEntity<SpecialityDto.SpecialityResponse> delete(@PathVariable Long id) {
         log.info("DELETE: speciality with id {}", id);
 
-        Speciality deletedSpeciality =
-                specialityService.delete(id);
+        Speciality deletedSpeciality = specialityService.delete(id);
 
-        return ResponseEntity.ok(
-                toResponse(deletedSpeciality)
-        );
+        return ResponseEntity.ok(toResponse(deletedSpeciality));
     }
 
-    private Speciality toEntity(
-            SpecialityDto.SpecialityRequest request
-    ) {
+    private Speciality toEntity(SpecialityDto.SpecialityRequest request) {
         Speciality speciality = new Speciality();
 
-        speciality.setName(
-                request.name()
-        );
+        speciality.setName(request.name());
 
-        speciality.setDescription(
-                request.description()
-        );
+        speciality.setDescription(request.description());
 
-        speciality.setDeleted(
-                Boolean.FALSE
-        );
+        speciality.setDeleted(Boolean.FALSE);
 
         return speciality;
     }
 
-    private SpecialityDto.SpecialityResponse toResponse(
-            Speciality speciality
-    ) {
-        return new SpecialityDto.SpecialityResponse(
-                speciality.getId(),
-                speciality.getName(),
-                speciality.getDescription()
-        );
+    private SpecialityDto.SpecialityResponse toResponse(Speciality speciality) {
+        return new SpecialityDto.SpecialityResponse(speciality.getId(), speciality.getName(), speciality.getDescription());
     }
 
-    private SpecialityDto.SpecialityComboResponse toComboResponse(
-            Speciality speciality
-    ) {
-        return new SpecialityDto.SpecialityComboResponse(
-                speciality.getId(),
-                speciality.getName()
-        );
+    private SpecialityDto.SpecialityComboResponse toComboResponse(Speciality speciality) {
+        return new SpecialityDto.SpecialityComboResponse(speciality.getId(), speciality.getName());
     }
 }
