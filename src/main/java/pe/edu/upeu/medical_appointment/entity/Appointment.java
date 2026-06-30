@@ -6,7 +6,17 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 
 @Entity
-@Table(name = "appointments")
+@Table(
+        name = "appointments",
+        indexes = {
+                @Index(name = "idx_appointments_patient_id", columnList = "patient_id"),
+                @Index(name = "idx_appointments_doctor_id", columnList = "doctor_id"),
+                @Index(name = "idx_appointments_date", columnList = "appointment_date"),
+                @Index(name = "idx_appointments_status", columnList = "status"),
+                @Index(name = "idx_appointments_doctor_date", columnList = "doctor_id, appointment_date"),
+                @Index(name = "idx_appointments_patient_date", columnList = "patient_id, appointment_date")
+        }
+)
 public class Appointment {
 
     @Id
@@ -25,7 +35,7 @@ public class Appointment {
     @Column(nullable = false, name = "end_time")
     private LocalTime endTime;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 32)
     @Enumerated(EnumType.STRING)
     private Status status;
 
@@ -40,7 +50,16 @@ public class Appointment {
     public Appointment() {
     }
 
-    public Appointment(Long id, String reason, LocalDate appointmentDate, LocalTime startTime, LocalTime endTime, Status status, Patient patient, Doctor doctor) {
+    public Appointment(
+            Long id,
+            String reason,
+            LocalDate appointmentDate,
+            LocalTime startTime,
+            LocalTime endTime,
+            Status status,
+            Patient patient,
+            Doctor doctor
+    ) {
         this.id = id;
         this.reason = reason;
         this.appointmentDate = appointmentDate;
@@ -49,6 +68,13 @@ public class Appointment {
         this.status = status;
         this.patient = patient;
         this.doctor = doctor;
+    }
+
+    @PrePersist
+    public void prePersist() {
+        if (this.status == null) {
+            this.status = Status.SCHEDULED;
+        }
     }
 
     public Long getId() {

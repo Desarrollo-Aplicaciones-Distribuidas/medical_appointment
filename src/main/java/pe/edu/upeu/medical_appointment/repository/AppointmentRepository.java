@@ -7,53 +7,38 @@ import pe.edu.upeu.medical_appointment.entity.Status;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.Collection;
 import java.util.List;
 
 @Repository
 public interface AppointmentRepository extends JpaRepository<Appointment, Long> {
 
-    List<Appointment> findByDoctorId(
+    List<Appointment> findAllByOrderByAppointmentDateAscStartTimeAsc();
+
+    List<Appointment> findByDoctorIdOrderByAppointmentDateAscStartTimeAsc(
             Long doctorId
     );
 
-    List<Appointment> findByPatientId(
+    List<Appointment> findByPatientIdOrderByAppointmentDateAscStartTimeAsc(
             Long patientId
     );
 
-    List<Appointment> findByAppointmentDate(
-            LocalDate appointmentDate
-    );
-
-    List<Appointment> findByStatus(
-            Status status
-    );
-
-    List<Appointment> findByDoctorIdAndAppointmentDate(
-            Long doctorId,
-            LocalDate appointmentDate
-    );
-
-    List<Appointment> findByPatientIdAndAppointmentDate(
-            Long patientId,
-            LocalDate appointmentDate
-    );
-
-    List<Appointment> findByDoctorIdAndAppointmentDateOrderByStartTime(
-            Long doctorId,
-            LocalDate appointmentDate
-    );
-
-    List<Appointment> findByPatientIdAndAppointmentDateOrderByStartTime(
-            Long patientId,
-            LocalDate appointmentDate
-    );
-
-    List<Appointment> findByAppointmentDateOrderByStartTime(
+    List<Appointment> findByAppointmentDateOrderByStartTimeAsc(
             LocalDate appointmentDate
     );
 
     List<Appointment> findByStatusOrderByAppointmentDateAscStartTimeAsc(
             Status status
+    );
+
+    List<Appointment> findByDoctorIdAndAppointmentDateOrderByStartTimeAsc(
+            Long doctorId,
+            LocalDate appointmentDate
+    );
+
+    List<Appointment> findByPatientIdAndAppointmentDateOrderByStartTimeAsc(
+            Long patientId,
+            LocalDate appointmentDate
     );
 
     List<Appointment> findByDoctorIdAndStatusOrderByAppointmentDateAscStartTimeAsc(
@@ -66,10 +51,43 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
             Status status
     );
 
-    List<Appointment> findByDoctorIdAndAppointmentDateAndStartTimeLessThanAndEndTimeGreaterThan(
+    List<Appointment> findByDoctorIdAndAppointmentDateAndStatusInOrderByStartTimeAsc(
+            Long doctorId,
+            LocalDate appointmentDate,
+            Collection<Status> statuses
+    );
+
+    boolean existsByDoctorIdAndAppointmentDateAndStartTimeLessThanAndEndTimeGreaterThanAndStatusIn(
             Long doctorId,
             LocalDate appointmentDate,
             LocalTime endTime,
-            LocalTime startTime
+            LocalTime startTime,
+            Collection<Status> statuses
+    );
+
+    boolean existsByPatientIdAndAppointmentDateAndStartTimeLessThanAndEndTimeGreaterThanAndStatusIn(
+            Long patientId,
+            LocalDate appointmentDate,
+            LocalTime endTime,
+            LocalTime startTime,
+            Collection<Status> statuses
+    );
+
+    boolean existsByDoctorIdAndAppointmentDateAndStartTimeLessThanAndEndTimeGreaterThanAndStatusInAndIdNot(
+            Long doctorId,
+            LocalDate appointmentDate,
+            LocalTime endTime,
+            LocalTime startTime,
+            Collection<Status> statuses,
+            Long id
+    );
+
+    boolean existsByPatientIdAndAppointmentDateAndStartTimeLessThanAndEndTimeGreaterThanAndStatusInAndIdNot(
+            Long patientId,
+            LocalDate appointmentDate,
+            LocalTime endTime,
+            LocalTime startTime,
+            Collection<Status> statuses,
+            Long id
     );
 }

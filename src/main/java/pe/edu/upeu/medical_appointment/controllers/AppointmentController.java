@@ -25,253 +25,160 @@ import java.util.function.Function;
 @RequestMapping("/appointments")
 public class AppointmentController {
 
-    private static final Logger log =
-            LoggerFactory.getLogger(AppointmentController.class);
+    private static final Logger log = LoggerFactory.getLogger(AppointmentController.class);
 
     private final AppointmentService appointmentService;
 
-    public AppointmentController(
-            AppointmentService appointmentService
-    ) {
+    public AppointmentController(AppointmentService appointmentService) {
         this.appointmentService = appointmentService;
     }
 
     @Operation(summary = "Get all appointments")
     @GetMapping
-    public ResponseEntity<List<AppointmentDto.AppointmentResponse>> getAllAppointments() {
-        log.info("REST request to get all appointments");
+    public ResponseEntity<List<AppointmentDto.AppointmentResponse>> getAll() {
+        log.info("GET: all appointments");
 
-        List<AppointmentDto.AppointmentResponse> response =
-                appointmentService.getAll()
-                        .stream()
-                        .map(this::toResponse)
-                        .toList();
-
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(
+                toResponseList(appointmentService.getAll())
+        );
     }
 
     @Operation(summary = "Get appointment by id")
     @GetMapping("/{id}")
-    public ResponseEntity<AppointmentDto.AppointmentResponse> getAppointmentById(
-            @PathVariable Long id
-    ) {
-        Appointment appointment =
-                appointmentService.getById(id);
+    public ResponseEntity<AppointmentDto.AppointmentResponse> findById(@PathVariable Long id) {
+        log.info("GET: appointment with id {}", id);
 
         return ResponseEntity.ok(
-                toResponse(appointment)
+                toResponse(appointmentService.findById(id))
         );
     }
 
     @Operation(summary = "Get appointments by doctor")
     @GetMapping("/doctor/{doctorId}")
-    public ResponseEntity<List<AppointmentDto.AppointmentResponse>> getAppointmentsByDoctor(
+    public ResponseEntity<List<AppointmentDto.AppointmentResponse>> getByDoctorId(
             @PathVariable Long doctorId
     ) {
-        log.info(
-                "REST request to get appointments for doctor {}",
-                doctorId
+        log.info("GET: appointments by doctor {}", doctorId);
+
+        return ResponseEntity.ok(
+                toResponseList(appointmentService.getByDoctorId(doctorId))
         );
-
-        List<AppointmentDto.AppointmentResponse> response =
-                appointmentService.getByDoctorId(doctorId)
-                        .stream()
-                        .map(this::toResponse)
-                        .toList();
-
-        return ResponseEntity.ok(response);
     }
 
     @Operation(summary = "Get appointments by patient")
     @GetMapping("/patient/{patientId}")
-    public ResponseEntity<List<AppointmentDto.AppointmentResponse>> getAppointmentsByPatient(
+    public ResponseEntity<List<AppointmentDto.AppointmentResponse>> getByPatientId(
             @PathVariable Long patientId
     ) {
+        log.info("GET: appointments by patient {}", patientId);
 
-        List<AppointmentDto.AppointmentResponse> response =
-                appointmentService.getByPatientId(patientId)
-                        .stream()
-                        .map(this::toResponse)
-                        .toList();
-
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(
+                toResponseList(appointmentService.getByPatientId(patientId))
+        );
     }
 
     @Operation(summary = "Get appointments by patient DNI")
     @GetMapping("/patient/dni/{dni}")
-    public ResponseEntity<List<AppointmentDto.AppointmentResponse>> getAppointmentsByPatientDni(
+    public ResponseEntity<List<AppointmentDto.AppointmentResponse>> getByPatientDni(
             @PathVariable String dni
     ) {
-        log.info(
-                "REST request to get appointments for patient with dni {}",
-                dni
+        log.info("GET: appointments by patient dni {}", dni);
+
+        return ResponseEntity.ok(
+                toResponseList(appointmentService.getByPatientDni(dni))
         );
-
-        List<AppointmentDto.AppointmentResponse> response =
-                appointmentService.getByPatientDni(dni)
-                        .stream()
-                        .map(this::toResponse)
-                        .toList();
-
-        return ResponseEntity.ok(response);
     }
 
     @Operation(summary = "Get appointments by date")
     @GetMapping("/date/{date}")
-    public ResponseEntity<List<AppointmentDto.AppointmentResponse>> getAppointmentsByDate(
+    public ResponseEntity<List<AppointmentDto.AppointmentResponse>> getByDate(
             @PathVariable
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
             LocalDate date
     ) {
-        log.info(
-                "REST request to get appointments for date {}",
-                date
+        log.info("GET: appointments by date {}", date);
+
+        return ResponseEntity.ok(
+                toResponseList(appointmentService.getByDate(date))
         );
-
-        List<AppointmentDto.AppointmentResponse> response =
-                appointmentService.getByDate(date)
-                        .stream()
-                        .map(this::toResponse)
-                        .toList();
-
-        return ResponseEntity.ok(response);
     }
 
     @Operation(summary = "Get appointments by doctor and date")
     @GetMapping("/doctor/{doctorId}/date/{date}")
-    public ResponseEntity<List<AppointmentDto.AppointmentResponse>> getAppointmentsByDoctorAndDate(
+    public ResponseEntity<List<AppointmentDto.AppointmentResponse>> getByDoctorIdAndDate(
             @PathVariable Long doctorId,
             @PathVariable
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
             LocalDate date
     ) {
-        log.info(
-                "REST request to get appointments for doctor {} and date {}",
-                doctorId,
-                date
+        log.info("GET: appointments by doctor {} and date {}", doctorId, date);
+
+        return ResponseEntity.ok(
+                toResponseList(appointmentService.getByDoctorIdAndDate(doctorId, date))
         );
-
-        List<AppointmentDto.AppointmentResponse> response =
-                appointmentService
-                        .getByDoctorIdAndDate(
-                                doctorId,
-                                date
-                        )
-                        .stream()
-                        .map(this::toResponse)
-                        .toList();
-
-        return ResponseEntity.ok(response);
     }
 
     @Operation(summary = "Get appointments by patient and date")
     @GetMapping("/patient/{patientId}/date/{date}")
-    public ResponseEntity<List<AppointmentDto.AppointmentResponse>> getAppointmentsByPatientAndDate(
+    public ResponseEntity<List<AppointmentDto.AppointmentResponse>> getByPatientIdAndDate(
             @PathVariable Long patientId,
             @PathVariable
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
             LocalDate date
     ) {
-        log.info(
-                "REST request to get appointments for patient {} and date {}",
-                patientId,
-                date
+        log.info("GET: appointments by patient {} and date {}", patientId, date);
+
+        return ResponseEntity.ok(
+                toResponseList(appointmentService.getByPatientIdAndDate(patientId, date))
         );
-
-        List<AppointmentDto.AppointmentResponse> response =
-                appointmentService
-                        .getByPatientIdAndDate(
-                                patientId,
-                                date
-                        )
-                        .stream()
-                        .map(this::toResponse)
-                        .toList();
-
-        return ResponseEntity.ok(response);
     }
 
     @Operation(summary = "Get appointments by status")
     @GetMapping("/status/{status}")
-    public ResponseEntity<List<AppointmentDto.AppointmentResponse>> getAppointmentsByStatus(
+    public ResponseEntity<List<AppointmentDto.AppointmentResponse>> getByStatus(
             @PathVariable Status status
     ) {
-        log.info(
-                "REST request to get appointments with status {}",
-                status
+        log.info("GET: appointments by status {}", status);
+
+        return ResponseEntity.ok(
+                toResponseList(appointmentService.getByStatus(status))
         );
-
-        List<AppointmentDto.AppointmentResponse> response =
-                appointmentService.getByStatus(status)
-                        .stream()
-                        .map(this::toResponse)
-                        .toList();
-
-        return ResponseEntity.ok(response);
     }
 
     @Operation(summary = "Get appointments by doctor and status")
     @GetMapping("/doctor/{doctorId}/status/{status}")
-    public ResponseEntity<List<AppointmentDto.AppointmentResponse>> getAppointmentsByDoctorAndStatus(
+    public ResponseEntity<List<AppointmentDto.AppointmentResponse>> getByDoctorIdAndStatus(
             @PathVariable Long doctorId,
             @PathVariable Status status
     ) {
-        log.info(
-                "REST request to get appointments for doctor {} with status {}",
-                doctorId,
-                status
+        log.info("GET: appointments by doctor {} and status {}", doctorId, status);
+
+        return ResponseEntity.ok(
+                toResponseList(appointmentService.getByDoctorIdAndStatus(doctorId, status))
         );
-
-        List<AppointmentDto.AppointmentResponse> response =
-                appointmentService
-                        .getByDoctorIdAndStatus(
-                                doctorId,
-                                status
-                        )
-                        .stream()
-                        .map(this::toResponse)
-                        .toList();
-
-        return ResponseEntity.ok(response);
     }
 
     @Operation(summary = "Get appointments by patient and status")
     @GetMapping("/patient/{patientId}/status/{status}")
-    public ResponseEntity<List<AppointmentDto.AppointmentResponse>> getAppointmentsByPatientAndStatus(
+    public ResponseEntity<List<AppointmentDto.AppointmentResponse>> getByPatientIdAndStatus(
             @PathVariable Long patientId,
             @PathVariable Status status
     ) {
-        log.info(
-                "REST request to get appointments for patient {} with status {}",
-                patientId,
-                status
+        log.info("GET: appointments by patient {} and status {}", patientId, status);
+
+        return ResponseEntity.ok(
+                toResponseList(appointmentService.getByPatientIdAndStatus(patientId, status))
         );
-
-        List<AppointmentDto.AppointmentResponse> response =
-                appointmentService
-                        .getByPatientIdAndStatus(
-                                patientId,
-                                status
-                        )
-                        .stream()
-                        .map(this::toResponse)
-                        .toList();
-
-        return ResponseEntity.ok(response);
     }
 
     @Operation(summary = "Create appointment")
     @PostMapping
-    public ResponseEntity<AppointmentDto.AppointmentResponse> createAppointment(
+    public ResponseEntity<AppointmentDto.AppointmentResponse> create(
             @Valid @RequestBody AppointmentDto.AppointmentRequest request
     ) {
-        log.info("REST request to create appointment");
+        log.info("POST: appointment");
 
-        Appointment appointment =
-                toEntity(request);
-
-        Appointment savedAppointment =
-                appointmentService.create(appointment);
+        Appointment savedAppointment = appointmentService.create(toEntity(request));
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -280,40 +187,25 @@ public class AppointmentController {
 
     @Operation(summary = "Update appointment")
     @PutMapping("/{id}")
-    public ResponseEntity<AppointmentDto.AppointmentResponse> updateAppointment(
+    public ResponseEntity<AppointmentDto.AppointmentResponse> update(
             @PathVariable Long id,
             @Valid @RequestBody AppointmentDto.AppointmentUpdateRequest request
     ) {
-        log.info(
-                "REST request to update appointment with id {}",
-                id
-        );
+        log.info("PUT: appointment with id {}", id);
 
-        Appointment appointment =
-                toEntity(request);
+        Appointment updatedAppointment = appointmentService.update(id, toEntity(request));
 
-        Appointment updatedAppointment =
-                appointmentService.update(
-                        id,
-                        appointment
-                );
-
-        return ResponseEntity.ok(
-                toResponse(updatedAppointment)
-        );
+        return ResponseEntity.ok(toResponse(updatedAppointment));
     }
 
     @Operation(summary = "Cancel appointment")
     @PatchMapping("/{id}/cancel")
-    public ResponseEntity<AppointmentDto.AppointmentStatusResponse> cancelAppointment(
+    public ResponseEntity<AppointmentDto.AppointmentStatusResponse> cancel(
             @PathVariable Long id
     ) {
-        log.info(
-                "REST request to cancel appointment with id {}",
-                id
-        );
+        log.info("PATCH: cancel appointment with id {}", id);
 
-        return changeAppointmentStatus(
+        return changeStatus(
                 id,
                 appointmentService::cancel,
                 "La cita fue cancelada correctamente"
@@ -322,15 +214,12 @@ public class AppointmentController {
 
     @Operation(summary = "Confirm appointment")
     @PatchMapping("/{id}/confirm")
-    public ResponseEntity<AppointmentDto.AppointmentStatusResponse> confirmAppointment(
+    public ResponseEntity<AppointmentDto.AppointmentStatusResponse> confirm(
             @PathVariable Long id
     ) {
-        log.info(
-                "REST request to confirm appointment with id {}",
-                id
-        );
+        log.info("PATCH: confirm appointment with id {}", id);
 
-        return changeAppointmentStatus(
+        return changeStatus(
                 id,
                 appointmentService::confirm,
                 "La cita fue confirmada correctamente"
@@ -339,44 +228,39 @@ public class AppointmentController {
 
     @Operation(summary = "Complete appointment")
     @PatchMapping("/{id}/complete")
-    public ResponseEntity<AppointmentDto.AppointmentStatusResponse> completeAppointment(
+    public ResponseEntity<AppointmentDto.AppointmentStatusResponse> complete(
             @PathVariable Long id
     ) {
-        log.info(
-                "REST request to complete appointment with id {}",
-                id
-        );
+        log.info("PATCH: complete appointment with id {}", id);
 
-        return changeAppointmentStatus(
+        return changeStatus(
                 id,
                 appointmentService::complete,
                 "La cita fue completada correctamente"
         );
     }
 
-    private ResponseEntity<AppointmentDto.AppointmentStatusResponse> changeAppointmentStatus(
+    private ResponseEntity<AppointmentDto.AppointmentStatusResponse> changeStatus(
             Long id,
             Function<Long, Appointment> statusAction,
             String message
     ) {
-        Status previousStatus =
-                appointmentService.getById(id).getStatus();
+        Status previousStatus = appointmentService.findById(id).getStatus();
 
-        Appointment updatedAppointment =
-                statusAction.apply(id);
+        Appointment updatedAppointment = statusAction.apply(id);
 
         return ResponseEntity.ok(
-                toStatusResponse(
-                        updatedAppointment,
+                new AppointmentDto.AppointmentStatusResponse(
+                        updatedAppointment.getId(),
                         previousStatus,
-                        message
+                        updatedAppointment.getStatus(),
+                        message,
+                        LocalDateTime.now()
                 )
         );
     }
 
-    private Appointment toEntity(
-            AppointmentDto.AppointmentRequest request
-    ) {
+    private Appointment toEntity(AppointmentDto.AppointmentRequest request) {
         return buildAppointment(
                 request.reason(),
                 request.appointmentDate(),
@@ -387,9 +271,7 @@ public class AppointmentController {
         );
     }
 
-    private Appointment toEntity(
-            AppointmentDto.AppointmentUpdateRequest request
-    ) {
+    private Appointment toEntity(AppointmentDto.AppointmentUpdateRequest request) {
         return buildAppointment(
                 request.reason(),
                 request.appointmentDate(),
@@ -415,7 +297,6 @@ public class AppointmentController {
         doctor.setId(doctorId);
 
         Appointment appointment = new Appointment();
-
         appointment.setReason(reason);
         appointment.setAppointmentDate(appointmentDate);
         appointment.setStartTime(startTime);
@@ -427,41 +308,25 @@ public class AppointmentController {
         return appointment;
     }
 
-    private AppointmentDto.AppointmentResponse toResponse(
-            Appointment appointment
+    private List<AppointmentDto.AppointmentResponse> toResponseList(
+            List<Appointment> appointments
     ) {
-        Long patientId = null;
-        String patientFullName = null;
-        String patientDni = null;
+        return appointments
+                .stream()
+                .map(this::toResponse)
+                .toList();
+    }
 
-        if (appointment.getPatient() != null) {
-            patientId = appointment.getPatient().getId();
-            patientFullName = buildFullName(
-                    appointment.getPatient().getName(),
-                    appointment.getPatient().getLastName()
-            );
-            patientDni = appointment.getPatient().getDni();
-        }
+    private AppointmentDto.AppointmentResponse toResponse(Appointment appointment) {
+        Patient patient = appointment.getPatient();
+        Doctor doctor = appointment.getDoctor();
 
-        Long doctorId = null;
-        String doctorFullName = null;
         Long specialityId = null;
         String specialityName = null;
 
-        if (appointment.getDoctor() != null) {
-            doctorId = appointment.getDoctor().getId();
-            doctorFullName = buildFullName(
-                    appointment.getDoctor().getName(),
-                    appointment.getDoctor().getLastName()
-            );
-
-            if (appointment.getDoctor().getSpeciality() != null) {
-                specialityId =
-                        appointment.getDoctor().getSpeciality().getId();
-
-                specialityName =
-                        appointment.getDoctor().getSpeciality().getName();
-            }
+        if (doctor != null && doctor.getSpeciality() != null) {
+            specialityId = doctor.getSpeciality().getId();
+            specialityName = doctor.getSpeciality().getName();
         }
 
         return new AppointmentDto.AppointmentResponse(
@@ -471,42 +336,21 @@ public class AppointmentController {
                 appointment.getStartTime(),
                 appointment.getEndTime(),
                 appointment.getStatus(),
-                patientId,
-                patientFullName,
-                patientDni,
-                doctorId,
-                doctorFullName,
+                patient != null ? patient.getId() : null,
+                patient != null ? buildFullName(patient.getName(), patient.getLastName()) : null,
+                patient != null ? patient.getDni() : null,
+                doctor != null ? doctor.getId() : null,
+                doctor != null ? buildFullName(doctor.getName(), doctor.getLastName()) : null,
                 specialityId,
                 specialityName
         );
     }
 
-    private AppointmentDto.AppointmentStatusResponse toStatusResponse(
-            Appointment appointment,
-            Status previousStatus,
-            String message
-    ) {
-        return new AppointmentDto.AppointmentStatusResponse(
-                appointment.getId(),
-                previousStatus,
-                appointment.getStatus(),
-                message,
-                LocalDateTime.now()
-        );
-    }
+    private String buildFullName(String name, String lastName) {
+        String safeName = name != null ? name.trim() : "";
+        String safeLastName = lastName != null ? lastName.trim() : "";
 
-    private String buildFullName(
-            String name,
-            String lastName
-    ) {
-        String safeName =
-                name != null ? name.trim() : "";
-
-        String safeLastName =
-                lastName != null ? lastName.trim() : "";
-
-        String fullName =
-                (safeName + " " + safeLastName).trim();
+        String fullName = (safeName + " " + safeLastName).trim();
 
         return fullName.isEmpty() ? null : fullName;
     }
